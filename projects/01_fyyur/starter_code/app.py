@@ -625,19 +625,53 @@ def edit_artist(artist_id):
 
 @app.route('/artists/<int:artist_id>/edit', methods=['POST'])
 def edit_artist_submission(artist_id):
+
+  '''
+  try:
+    artist_data = request.form
+    artist = Artist()
+    artist.name = artist_data.get('name')
+    artist.city = artist_data.get('city')
+    artist.state = artist_data.get('state')
+    artist.address = artist_data.get('address')
+    artist.phone = artist_data.get('phone')
+    artist.genres = artist_data.getlist('genres')
+    sk = artist_data.get('seeking_talent')
+    if sk == 'y':
+      artist.seeking_talent = True
+    else:
+      artist.seeking_talent = False 
+    artist.seeking_description = artist_data.get('seeking_description')
+    artist.website = artist_data.get('website_link ')
+    artist.image_link = artist_data.get('image_link')
+    artist.facebook_link = artist_data.get('facebook_link') 
+       
+    db.session.add(artist)
+    db.session.commit()
+  except:
+    print(sys.exc_info())
+    db.session.rollback()
+  finally:
+    db.session.close()    
+  '''
   # TODO: take values from the form submitted, and update existing
   # artist record with ID <artist_id> using the new attributes
   artist = Artist.query.filter(Artist.id == artist_id).first()
   updated_data = request.form
   try:
     artist.name = updated_data.get('name')
-    artist.state = updated_data.get('sate')
+    artist.state = updated_data.get('state')
     artist.city = updated_data.get('city')
-    artist.genres = updated_data.get('genres')
+    artist.genres = updated_data.getlist('genres')
     artist.address = updated_data.get('address')
     artist.website = updated_data.get('website')
+    artist.image_link = updated_data.get('image_link')
     artist.facebook_link = updated_data.get('facebook_link')
-    artist.seeking_venue = updated_data.get('seeking_venue')
+    sk = updated_data.get('seeking_venue')
+    if sk == 'y':
+      artist.seeking_talent = True
+    else:
+      artist.seeking_talent = False 
     artist.seeking_description = updated_data.get('seeking_description')    
     db.session.add(artist)
     db.session.commit()
@@ -702,22 +736,29 @@ def edit_venue(venue_id):
 def edit_venue_submission(venue_id):
   # TODO: take values from the form submitted, and update existing
   # venue record with ID <venue_id> using the new attributes
-  venue = Artist.query.filter(Artist.id == venue_id).first()
+  venue = Venue.query.filter(Venue.id == venue_id).first()
   updated_data = request.form
   try:
     venue.name = updated_data.get('name')
-    venue.state = updated_data.get('sate')
+    venue.state = updated_data.get('state')
     venue.city = updated_data.get('city')
-    venue.genres = updated_data.get('genres')
+    venue.genres = updated_data.getlist('genres')
     venue.address = updated_data.get('address')
+    venue.image_link = updated_data.get('image_link')
     venue.website = updated_data.get('website')
     venue.facebook_link = updated_data.get('facebook_link')
-    venue.seeking_talent = updated_data.get('seeking_talent')
+    
+    sk = updated_data.get('seeking_talent')
+    if sk == 'y':
+      venue.seeking_talent = True
+    else:
+      venue.seeking_talent = False 
     venue.seeking_description = updated_data.get('seeking_description')    
     db.session.add(venue)
     db.session.commit()
   except:
     db.session.rollback()
+    print(sys.exc_info())
   finally:
     db.session.close()
   return redirect(url_for('show_venue', venue_id=venue_id))
