@@ -119,39 +119,42 @@ def create_app(test_config=None):
   of the questions list in the "List" tab.  
   '''
     @app.route('/questions', methods=["POST"])
-    def add_question():        
+    def add_question():
         question_data = request.get_json()
         print(question_data)
         if 'searchTerm' in question_data:
-          search_term = question_data['searchTerm']
-          print(search_term)
-          questions = Question.query.all()
-          questions_result = []
-          for question in questions:
-            question_formatted = question.format()
-            if search_term.lower() in question_formatted['question'].lower():
-              questions_result.append(question_formatted)
-          print(questions_result)
-          result = {
-              "questions": questions_result,
-              "totalQuestions":len(questions_result),
-              "currentCategory":'Entertainment'
-          }
-          print(result)
-          return jsonify(result)
+            search_term = question_data['searchTerm']
+            print(search_term)
+            questions = Question.query.all()
+            questions_result = []
+            for question in questions:
+                question_formatted = question.format()
+                if search_term.lower() in question_formatted['question'].lower():
+                    questions_result.append(question_formatted)
+            print(questions_result)
+            result = {
+                "questions": questions_result,
+                "totalQuestions": len(questions_result),
+                "currentCategory": 'Entertainment'
+            }
+            print(result)
+            return jsonify(result)
 
         else:
-          question_name = question_data['question']
-          question_answer = question_data['answer']
-          question_diff = question_data['difficulty']
-          question_cate = question_data['category']
-          question = Question(question_name, question_answer,
-                              question_cate, question_diff)
           try:
-              question.insert()
-              return jsonify({"result": "success"}), 200
+            question_name = question_data['question']
+            question_answer = question_data['answer']
+            question_diff = question_data['difficulty']
+            question_cate = question_data['category']
+            question = Question(question_name, question_answer,
+                                question_cate, question_diff)
+            try:
+                question.insert()
+                return jsonify({"result": "success"}), 200
+            except:
+                return abort(404)
           except:
-              return "Failed to post", 404
+            abort(404)
 
     '''
   @TODO: 
@@ -163,7 +166,6 @@ def create_app(test_config=None):
   only question that include that string within their question. 
   Try using the word "title" to start. 
   '''
-    
 
     '''
   @TODO: 
@@ -177,6 +179,12 @@ def create_app(test_config=None):
     def categorie_questions(id):
         categorie_questions_list = Question.query.filter_by(
             category=id).all()
+
+        print("hello")
+        print(len(categorie_questions_list))
+        if len(categorie_questions_list) == 0:                                        
+          abort(422)
+          
         print(categorie_questions_list)
         formatted_questions = []
         for question in categorie_questions_list:
@@ -204,28 +212,44 @@ def create_app(test_config=None):
   and shown whether they were correct or not. 
   '''
 
-    @app.route('/quizzes',methods=["POST"])
+    @app.route('/quizzes', methods=["POST"])
     def play_quizzes():
-      body = request.get_json()
-      quiz_category = body.get('quiz_category')['id']
-      quiz_prev_questions = body.get('previous_questions',[])
-      questions = None
-      if quiz_category == 0:
-        questions =Question.query.all()
-      else:
-        questions = Question.query.filter_by(category=quiz_category).all()
-      print(questions)
-      next_question = {}
-      for question in questions:
-        if question.id not in quiz_prev_questions:
-          next_question = question.format()
-      print(next_question)
-      return jsonify({"question":next_question})
+        body = request.get_json()
+        quiz_category = body.get('quiz_category')['id']
+        quiz_prev_questions = body.get('previous_questions', [])
+        questions = None
+        if quiz_category == 0:
+            questions = Question.query.all()
+        else:
+            questions = Question.query.filter_by(category=quiz_category).all()
+        print(questions)
+        next_question = {}
+        for question in questions:
+            if question.id not in quiz_prev_questions:
+                next_question = question.format()
+        print(next_question)
+        return jsonify({"question": next_question})
 
     '''
   @TODO: 
   Create error handlers for all expected errors 
   including 404 and 422. 
   '''
+
+    @app.errorhandler(404)
+    def not_found(error):
+        return jsonify({
+            "success": False,
+            "error": 404,
+            "message": "not found"
+        }), 404
+
+    @app.errorhandler(422)
+    def unable_to_proccess(error):
+        return jsonify({
+            "success": False,
+            "error": 422,
+            "message": "unable to process the contained instructions"
+        }), 422
 
     return app
